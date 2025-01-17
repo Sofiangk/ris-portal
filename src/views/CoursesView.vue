@@ -46,43 +46,17 @@
           <!-- Download Books -->
           <div class="p-4 shadow border rounded-md border-navy-lighter/10">
             <h4 class="font-bold text-navy-light mb-2">Download Books</h4>
-            <div v-if="selectedCourse.books.length === 0">
-              No books available.
-            </div>
+            <div v-if="!selectedCourse.books">No books available.</div>
             <ul v-else class="space-y-2">
-              <li
-                v-for="book in selectedCourse.books"
-                :key="book.id"
-                class="text-navy-lighter"
-              >
+              <li class="text-navy-lighter">
                 -
                 <a
-                  :href="book.url"
+                  :href="selectedCourse.books_download_link"
                   target="_blank"
                   class="text-navy-light underline hover:text-blue-600 hover:underline-offset-1 transition transform ease-in-out duration-200"
                 >
-                  {{ book.name }}
+                  Download Book
                 </a>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Announcements -->
-          <div class="p-4 shadow border rounded-md border-navy-lighter/10">
-            <h4 class="font-bold text-navy-light mb-2">Latest Announcements</h4>
-            <div
-              v-if="selectedCourse.announcements.length === 0"
-              class="text-gray-500"
-            >
-              No announcements yet.
-            </div>
-            <ul v-else class="space-y-2">
-              <li
-                v-for="announcement in selectedCourse.announcements"
-                :key="announcement.id"
-                class="text-navy-light"
-              >
-                - {{ announcement.text }}
               </li>
             </ul>
           </div>
@@ -90,52 +64,17 @@
           <!-- Assignments -->
           <div class="p-4 shadow border rounded-md border-navy-lighter/10">
             <h4 class="font-bold text-navy-light mb-2">Assignments</h4>
-            <div
-              v-if="selectedCourse.assignments.length === 0"
-              class="text-gray-500"
-            >
+            <div v-if="!selectedCourse.assignments" class="text-gray-500">
               No assignments yet.
             </div>
-            <ul v-else class="space-y-2">
-              <li
-                v-for="assignment in selectedCourse.assignments"
-                :key="assignment.id"
-                class="text-navy-light"
-              >
-                -
-                <a
-                  href="#"
-                  class="text-navy-light underline hover:text-blue-600 hover:underline-offset-1 transition transform ease-in-out duration-200"
-                >
-                  {{ assignment.name }}
-                </a>
-                (Due: {{ assignment.dueDate }})
-              </li>
-            </ul>
           </div>
 
           <!-- Tests -->
           <div class="p-4 shadow border rounded-md border-navy-lighter/10">
             <h4 class="font-bold text-navy-light mb-2">Tests</h4>
-            <div v-if="selectedCourse.tests.length === 0" class="text-gray-500">
+            <div v-if="!selectedCourse.tests" class="text-gray-500">
               No tests yet.
             </div>
-            <ul v-else class="space-y-2">
-              <li
-                v-for="test in selectedCourse.tests"
-                :key="test.id"
-                class="text-navy-lighter"
-              >
-                -
-                <a
-                  href="#"
-                  class="text-navy-light underline hover:text-blue-600 hover:underline-offset-1 transition transform ease-in-out duration-200"
-                >
-                  {{ test.name }}
-                </a>
-                (Due: {{ test.dueDate }})
-              </li>
-            </ul>
           </div>
         </div>
       </div>
@@ -149,166 +88,54 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
-      courses: [
-        {
-          id: 1,
-          name: 'Math 101',
-          instructor: 'Mr. John Doe',
-          code: 'MATH101',
-          credits: 3,
-          announcements: [
-            { id: 1, text: 'Welcome to Math 101!' },
-            { id: 2, text: 'Homework #1 is due next week.' },
-          ],
-          assignments: [{ id: 1, name: 'Homework #1', dueDate: '2024-01-15' }],
-          tests: [
-            { id: 1, name: 'Test 1', dueDate: '2024-02-15' },
-            { id: 2, name: 'Test 2', dueDate: '2024-03-15' },
-          ],
-          books: [
-            {
-              id: 1,
-              name: 'Math Textbook',
-              url: 'https://example.com/math-book.pdf',
-            },
-            {
-              id: 2,
-              name: 'Algebra Textbook',
-              url: 'https://example.com/algebra-book.pdf',
-            },
-          ],
-        },
-        {
-          id: 2,
-          name: 'English 101',
-          instructor: 'Ms. Jane Smith',
-          code: 'ENG101',
-          credits: 3,
-          announcements: [
-            { id: 1, text: 'Welcome to English 101!' },
-            { id: 2, text: 'Homework #1 is due next week.' },
-          ],
-          assignments: [{ id: 1, name: 'Homework #1', dueDate: '2024-01-15' }],
-          tests: [
-            { id: 1, name: 'Test 1', dueDate: '2024-02-15' },
-            { id: 2, name: 'Test 2', dueDate: '2024-03-15' },
-          ],
-          books: [
-            {
-              id: 1,
-              name: 'English Textbook',
-              url: 'https://example.com/english-book.pdf',
-            },
-            {
-              id: 2,
-              name: 'Grammar Textbook',
-              url: 'https://example.com/grammar-book.pdf',
-            },
-          ],
-        },
-        {
-          id: 3,
-          name: 'Science 101',
-          instructor: 'Mr. John Doe',
-          code: 'SCI101',
-          credits: 3,
-          announcements: [
-            { id: 1, text: 'Welcome to Science 101!' },
-            { id: 2, text: 'Homework #1 is due next week.' },
-          ],
-          assignments: [{ id: 1, name: 'Homework #1', dueDate: '2024-01-15' }],
-          tests: [
-            { id: 1, name: 'Test 1', dueDate: '2024-02-15' },
-            { id: 2, name: 'Test 2', dueDate: '2024-03-15' },
-          ],
-          books: [
-            {
-              id: 1,
-              name: 'Science Textbook',
-              url: 'https://example.com/science-book.pdf',
-            },
-          ],
-        },
-        {
-          id: 4,
-          name: 'History 101',
-          instructor: 'Ms. Jane Smith',
-          code: 'HIS101',
-          credits: 3,
-          announcements: [
-            { id: 1, text: 'Welcome to History 101!' },
-            { id: 2, text: 'Homework #1 is due next week.' },
-          ],
-          assignments: [{ id: 1, name: 'Homework #1', dueDate: '2024-01-15' }],
-          tests: [
-            { id: 1, name: 'Test 1', dueDate: '2024-02-15' },
-            { id: 2, name: 'Test 2', dueDate: '2024-03-15' },
-          ],
-          books: [
-            {
-              id: 1,
-              name: 'History Textbook',
-              url: 'https://example.com/history-book.pdf',
-            },
-          ],
-        },
-        {
-          id: 5,
-          name: 'Chemistry 101',
-          instructor: 'Mr. John Doe',
-          code: 'CHEM101',
-          credits: 3,
-          announcements: [
-            { id: 1, text: 'Welcome to Chemistry 101!' },
-            { id: 2, text: 'Homework #1 is due next week.' },
-          ],
-          assignments: [{ id: 1, name: 'Homework #1', dueDate: '2024-01-15' }],
-          tests: [
-            { id: 1, name: 'Test 1', dueDate: '2024-02-15' },
-            { id: 2, name: 'Test 2', dueDate: '2024-03-15' },
-          ],
-          books: [
-            {
-              id: 1,
-              name: 'Chemistry Textbook',
-              url: 'https://example.com/chemistry-book.pdf',
-            },
-          ],
-        },
-        {
-          id: 6,
-          name: 'Biology 101',
-          instructor: 'Ms. Jane Smith',
-          code: 'BIO101',
-          credits: 3,
-          announcements: [
-            { id: 1, text: 'Welcome to Biology 101!' },
-            { id: 2, text: 'Homework #1 is due next week.' },
-          ],
-          assignments: [{ id: 1, name: 'Homework #1', dueDate: '2024-01-15' }],
-          tests: [
-            { id: 1, name: 'Test 1', dueDate: '2024-02-15' },
-            { id: 2, name: 'Test 2', dueDate: '2024-03-15' },
-          ],
-          books: [
-            {
-              id: 1,
-              name: 'Biology Textbook',
-              url: 'https://example.com/biology-book.pdf',
-            },
-          ],
-        },
-      ],
-      selectedCourse: null,
+      courses: [], // To store fetched courses
+      selectedCourse: null, // To track the selected course
     };
   },
   methods: {
+    // Fetch courses from the backend
+    async fetchCourses() {
+      const apiUrl = import.meta.env.VITE_APP_API_URL; // Base URL from environment variables
+      const token = localStorage.getItem("token"); // Retrieve token from local storage
+
+      try {
+        const response = await axios.get(`${apiUrl}students/materials`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the header
+          },
+        });
+
+        // Map and process the response
+        this.courses = response.data.map((course) => ({
+          id: course.id,
+          name: course.name,
+          code: course.code,
+          instructor: course.instructor,
+          credits: course.credits,
+          books_download_link: course.books_download_link,
+          assignments: course.assignments,
+          tests: course.tests,
+        }));
+      } catch (error) {
+        console.error(
+          "Failed to fetch courses:",
+          error.response || error.message
+        );
+      }
+    },
+    // Handle course selection
     selectCourse(course) {
       this.selectedCourse = course;
     },
+  },
+  mounted() {
+    // Fetch the courses when the component is mounted
+    this.fetchCourses();
   },
 };
 </script>

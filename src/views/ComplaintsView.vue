@@ -18,20 +18,20 @@
         <button
           class="px-4 py-2 rounded-lg shadow text-white"
           :class="{
-            'bg-green-600': filter === 'Resolved',
-            'bg-gray-400': filter !== 'Resolved',
+            'bg-green-600': filter === 'answered',
+            'bg-gray-400': filter !== 'answered',
           }"
-          @click="setFilter('Resolved')"
+          @click="setFilter('answered')"
         >
           Resolved
         </button>
         <button
           class="px-4 py-2 rounded-lg shadow text-white"
           :class="{
-            'bg-red-500': filter === 'Pending',
-            'bg-gray-400': filter !== 'Pending',
+            'bg-red-500': filter === 'pending',
+            'bg-gray-400': filter !== 'pending',
           }"
-          @click="setFilter('Pending')"
+          @click="setFilter('pending')"
         >
           Pending
         </button>
@@ -54,23 +54,23 @@
           :key="complaint.id"
           class="bg-white border-l-4 w-full p-4 shadow rounded-lg flex justify-between"
           :class="{
-            'border-green-600': complaint.status === 'Resolved',
-            'border-bloody-red': complaint.status === 'Pending',
+            'border-green-600': complaint.status === 'answered',
+            'border-bloody-red': complaint.status === 'pending',
           }"
         >
           <div>
             <h3 class="text-lg font-semibold text-navy-lighter">
-              {{ complaint.title }}
+              Complaint #{{ complaint.id }}
             </h3>
-            <p class="text-gray-600">Date: {{ complaint.date }}</p>
-            <p class="text-gray-600">{{ complaint.description }}</p>
+            <p class="text-gray-600">Date: {{ complaint.created_at }}</p>
+            <p class="text-gray-600">{{ complaint.content }}</p>
           </div>
           <div id="status" class="h-full flex items-center">
             <button
               class="px-4 py-2 rounded-lg text-white shadow"
               :class="{
-                'bg-green-600': complaint.status === 'Resolved',
-                'bg-red-500': complaint.status === 'Pending',
+                'bg-green-600': complaint.status === 'answered',
+                'bg-red-500': complaint.status === 'pending',
               }"
             >
               {{ complaint.status }}
@@ -92,20 +92,9 @@
         <h2 class="text-xl font-bold text-navy mb-4">New Complaint</h2>
         <form @submit.prevent="addComplaint">
           <div class="mb-4">
-            <label class="block text-navy font-semibold mb-2">Title</label>
-            <input
-              type="text"
-              v-model="newComplaint.title"
-              class="w-full p-2 border border-gray-300 rounded-lg"
-              required
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block text-navy font-semibold mb-2"
-              >Description</label
-            >
+            <label class="block text-navy font-semibold mb-2">Complaint</label>
             <textarea
-              v-model="newComplaint.description"
+              v-model="newComplaint.content"
               rows="4"
               class="w-full p-2 border border-gray-300 rounded-lg"
               required
@@ -133,40 +122,26 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
-      complaints: [
-        {
-          id: 1,
-          title: 'Poor Grading System',
-          date: 'November 15, 2024',
-          description: 'The grading system is not fair.',
-          status: 'Pending',
-        },
-        {
-          id: 2,
-          title: 'Missing Assignment',
-          date: 'December 25, 2024',
-          description: 'I missed a mandatory assignment.',
-          status: 'Resolved',
-        },
-      ],
-      filter: 'All',
-      showNewComplaintModal: false,
+      complaints: [], // Dynamic complaints array
+      filter: "All", // Default filter
+      showNewComplaintModal: false, // Modal visibility
       newComplaint: {
-        title: '',
-        description: '',
-        status: 'Pending',
-        date: new Date().toLocaleDateString(),
+        content: "", // Complaint content
       },
     };
   },
   computed: {
+    // Filter complaints based on status
     filteredComplaints() {
-      if (this.filter === 'All') return this.complaints;
+      if (this.filter === "All") return this.complaints;
       return this.complaints.filter(
-        (complaint) => complaint.status === this.filter
+        (complaint) =>
+          complaint.status.toLowerCase() === this.filter.toLowerCase()
       );
     },
   },
@@ -180,19 +155,69 @@ export default {
     closeNewComplaintModal() {
       this.showNewComplaintModal = false;
     },
-    addComplaint() {
-      this.complaints.push({
-        ...this.newComplaint,
-        id: this.complaints.length + 1,
-      });
-      this.newComplaint = {
-        title: '',
-        description: '',
-        status: 'Pending',
-        date: new Date().toLocaleDateString(),
-      };
-      this.showNewComplaintModal = false;
+    async fetchComplaints() {
+      const apiUrl = import.meta.env.VITE_APP_API_URL; // Your backend API base URL
+      const token = localStorage.getItem("token"); // Get token from local storage
+
+      try {
+        const response = await axios.get(`${apiUrl}students/user-complaints`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Access the 'complaints' key in the response
+        const complaintsData = response.data.complaints;
+
+        // Map backend complaints to match frontend requirements
+        this.complaints = complaintsData.map((complaint) => ({
+          id: complaint.id,
+          content: complaint.content,
+          status: complaint.status.toLowerCase(),
+          created_at: new Date(complaint.created_at).toLocaleDateString(),
+        }));
+      } catch (error) {
+        console.error("Error fetching complaints:", error.message);
+      }
     },
+    async addComplaint() {
+      const apiUrl = import.meta.env.VITE_APP_API_URL; // Your backend API base URL
+      const token = localStorage.getItem("token"); // Get token from local storage
+
+      try {
+        const response = await axios.post(
+          `${apiUrl}students/complaints`,
+          { content: this.newComplaint.content },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // Add the new complaint to the complaints list
+        this.complaints.unshift({
+          id: response.data.complaint.id,
+          content: response.data.complaint.content,
+          status: "pending", // Default status is pending
+          created_at: new Date(
+            response.data.complaint.created_at
+          ).toLocaleDateString(),
+        });
+
+        // Clear the form and close the modal
+        this.newComplaint.content = "";
+        this.showNewComplaintModal = false;
+
+        alert("Complaint submitted successfully!");
+      } catch (error) {
+        console.error("Error submitting complaint:", error.message);
+        alert("Failed to submit complaint. Please try again.");
+      }
+    },
+  },
+  mounted() {
+    this.fetchComplaints();
   },
 };
 </script>

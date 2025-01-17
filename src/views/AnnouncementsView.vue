@@ -3,7 +3,9 @@
     <!-- Page Header -->
     <header class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold text-navy">Announcements</h1>
+      <!-- Show New Announcement button only for admin -->
       <button
+        v-if="isAdmin"
         class="bg-navy-lighter text-white px-6 py-2 rounded-lg hover:bg-navy shadow"
         @click="openNewAnnouncementModal"
       >
@@ -22,10 +24,13 @@
           <div class="flex justify-between items-start">
             <div>
               <h3 class="text-lg font-semibold text-navy-lighter">
-                {{ announcement.title }}
+                Announcement #{{ announcement.id }}
               </h3>
-              <p class="text-gray-600">Date: {{ announcement.date }}</p>
-              <p class="text-gray-600">{{ announcement.message }}</p>
+              <p class="text-gray-600">
+                Date:
+                {{ new Date(announcement.created_at).toLocaleDateString() }}
+              </p>
+              <p class="text-gray-600">{{ announcement.content }}</p>
             </div>
             <div class="ml-4">
               <button
@@ -52,24 +57,15 @@
         <h2 class="text-xl font-bold text-navy mb-4">New Announcement</h2>
         <form @submit.prevent="addAnnouncement">
           <div class="mb-4">
-            <label class="block text-navy font-semibold mb-2">Title</label>
-            <input
-              type="text"
-              v-model="newAnnouncement.title"
-              class="w-full p-2 border border-gray-300 rounded-lg"
-              required
-            />
-          </div>
-          <div class="mb-4">
             <label class="block text-navy font-semibold mb-2">Message</label>
             <textarea
-              v-model="newAnnouncement.message"
+              v-model="newAnnouncement.content"
               rows="4"
               class="w-full p-2 border border-gray-300 rounded-lg"
               required
             ></textarea>
           </div>
-          <div class="mb-4 flex items-center">
+          <div class="flex items-center mb-4">
             <label class="text-navy font-semibold mr-2">Mark as Urgent</label>
             <input
               type="checkbox"
@@ -99,55 +95,103 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
-      announcements: [
-        {
-          id: 1,
-          title: 'Welcome to the New Semester',
-          date: 'December 20, 2024',
-          message: 'The new semester starts on January 5th. Get ready!',
-          urgent: false,
-        },
-        {
-          id: 2,
-          title: 'System Maintenance',
-          date: 'December 25, 2024',
-          message:
-            'There will be scheduled maintenance on December 28th from 2:00 AM to 6:00 AM. The system will be inaccessible during this time.',
-          urgent: true,
-        },
-      ],
-      showNewAnnouncementModal: false,
+      announcements: [], // Dynamic announcements array
+      showNewAnnouncementModal: false, // Modal visibility
       newAnnouncement: {
-        title: '',
-        message: '',
+        content: "",
         urgent: false,
-        date: new Date().toLocaleDateString(),
       },
+      isAdmin: false, // Flag to check if the user is an admin
     };
   },
   methods: {
+    // Open modal for adding a new announcement
     openNewAnnouncementModal() {
       this.showNewAnnouncementModal = true;
     },
+    // Close the modal
     closeNewAnnouncementModal() {
       this.showNewAnnouncementModal = false;
     },
-    addAnnouncement() {
-      this.announcements.push({
-        ...this.newAnnouncement,
-        id: this.announcements.length + 1,
-      });
-      this.newAnnouncement = {
-        title: '',
-        message: '',
-        urgent: false,
-        date: new Date().toLocaleDateString(),
-      };
-      this.showNewAnnouncementModal = false;
+    // Fetch announcements from the backend
+    async fetchAnnouncements() {
+      const apiUrl = import.meta.env.VITE_APP_API_URL; // Backend API URL from environment variables
+      const token = localStorage.getItem("token"); // Get token from local storage
+
+      try {
+        const response = await axios.get(`${apiUrl}announcements`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token in headers for authentication
+          },
+        });
+
+        // Map the response to match frontend requirements
+        this.announcements = response.data.map((announcement) => ({
+          id: announcement.id,
+          content: announcement.content,
+          created_at: announcement.created_at,
+        }));
+      } catch (error) {
+        console.error("Error fetching announcements:", error.message);
+      }
     },
+    // Add a new announcement (admin only)
+    async addAnnouncement() {
+      const apiUrl = import.meta.env.VITE_APP_API_URL; // Backend API URL
+      const token = localStorage.getItem("token"); // Get token from local storage
+
+      try {
+        const response = await axios.post(
+          `${apiUrl}admin/announcements`,
+          {
+            content: this.newAnnouncement.content,
+            urgent: this.newAnnouncement.urgent,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Include token in headers
+            },
+          }
+        );
+
+        // Add the new announcement to the list
+        this.announcements.unshift({
+          id: response.data.announcement.id,
+          content: response.data.announcement.content,
+          urgent: this.newAnnouncement.urgent,
+          created_at: response.data.announcement.created_at,
+        });
+
+        // Clear the modal form and close it
+        this.newAnnouncement = {
+          content: "",
+          urgent: false,
+        };
+        this.showNewAnnouncementModal = false;
+
+        alert("Announcement created successfully!");
+      } catch (error) {
+        console.error("Error creating announcement:", error.message);
+        alert("Failed to create announcement. Please try again.");
+      }
+    },
+    // Check if the logged-in user is an admin
+    checkAdminRole() {
+      const role = localStorage.getItem("role");
+      this.isAdmin = role === "admin";
+    },
+  },
+  mounted() {
+    // Check user role on component mount
+    this.checkAdminRole();
+
+    // Fetch announcements
+    this.fetchAnnouncements();
   },
 };
 </script>

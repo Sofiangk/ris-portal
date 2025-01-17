@@ -1,14 +1,23 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
-import { ref } from 'vue';
+import { RouterLink, RouterView } from "vue-router";
+import { ref, computed } from "vue";
+import { useAuthStore } from "@/stores/auth"; // Import Pinia store
 
+const authStore = useAuthStore(); // Access the auth store
 const isDropdownOpen = ref(false);
 
+// Computed property for the user's name
+const username = computed(() => authStore.name);
+
+// Toggle dropdown menu
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const username = 'Hamza Khalid';
+// Logout function
+const handleLogout = () => {
+  authStore.logout(); // Call the logout action in the store
+};
 </script>
 
 <template>
@@ -87,6 +96,7 @@ const username = 'Hamza Khalid';
           />
         </svg>
         <p>{{ username }}</p>
+        <!-- Display dynamic username -->
       </button>
       <!-- Dropdown Menu -->
       <div
@@ -104,12 +114,12 @@ const username = 'Hamza Khalid';
           </li>
 
           <li>
-            <router-link
-              to="/login"
-              class="block px-4 py-3 text-sm hover:bg-gray-200"
+            <button
+              @click="handleLogout"
+              class="block px-4 py-3 text-sm hover:bg-gray-200 w-full text-left"
             >
               Logout
-            </router-link>
+            </button>
           </li>
         </ul>
       </div>

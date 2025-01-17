@@ -16,109 +16,56 @@
 
       <div class="mb-12 grid grid-cols-1 md:grid-cols-2 gap-12">
         <!-- Announcements Section -->
-        <section class="">
+        <section>
           <h2 class="text-2xl font-bold text-navy flex items-center">
             Announcements
-            <router-link
-              to="/announcements"
-              class="ml-4 text-gold hover:underline"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2.5"
-                stroke="currentColor"
-                class="size-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </router-link>
           </h2>
           <div class="mt-4 space-y-4">
             <div
-              class="bg-white border-l-4 border-bloody-red p-4 shadow rounded-lg"
+              v-for="announcement in limitedAnnouncements"
+              :key="announcement.id"
+              class="bg-white border-l-4 border-gold p-4 shadow rounded-lg"
             >
-              <h3 class="text-lg font-semibold text-navy-lighter">
-                School Closure
-              </h3>
-              <p class="text-gray-600">Date: December 25, 2023</p>
-              <p class="text-gray-600">
-                School will be closed for the holiday.
-              </p>
-            </div>
-            <div
-              class="bg-white border-l-4 border-bloody-red p-4 shadow rounded-lg"
-            >
-              <h3 class="text-lg font-semibold text-navy-lighter">
-                New Semester
-              </h3>
-              <p class="text-gray-600">Date: January 10, 2024</p>
-              <p class="text-gray-600">
-                The new semester begins on January 15th.
+              <p class="text-gray-600">{{ announcement.content }}</p>
+              <p class="text-gray-400 text-sm">
+                Posted: {{ new Date(announcement.created_at).toLocaleString() }}
               </p>
             </div>
           </div>
         </section>
 
         <!-- Complaints Section -->
-        <section class="">
+        <section>
           <h2 class="text-2xl font-bold text-navy flex items-center">
             Complaints
-            <router-link
-              to="/complaints"
-              class="ml-4 text-gold hover:underline"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2.5"
-                stroke="currentColor"
-                class="size-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </router-link>
           </h2>
           <div class="mt-4 space-y-4">
             <div
-              class="bg-white border-l-4 border-bloody-red p-4 shadow rounded-lg flex justify-between"
+              v-for="complaint in limitedComplaints"
+              :key="complaint.id"
+              class="bg-white border-l-4 p-4 shadow rounded-lg flex justify-between"
+              :class="{
+                'border-green-600': complaint.status === 'answered',
+                'border-yellow-500': complaint.status === 'pending',
+                'border-gray-300': complaint.status === 'noted',
+              }"
             >
               <div>
-                <h3 class="text-lg font-semibold text-navy-lighter">
-                  Poor Grading System
-                </h3>
-                <p class="text-gray-600">Date: November 15, 2024</p>
-                <p class="text-gray-600">The grading system is not fair.</p>
+                <p class="text-gray-600">{{ complaint.content }}</p>
+                <p class="text-gray-400 text-sm">
+                  Submitted: {{ complaint.created_at }}
+                </p>
               </div>
               <div id="status" class="h-full flex items-center">
-                <button class="bg-red-500 text-white px-4 py-2 rounded-lg">
-                  Pending
-                </button>
-              </div>
-            </div>
-            <div
-              class="bg-white border-l-4 border-green-600 p-4 shadow rounded-lg flex justify-between"
-            >
-              <div>
-                <h3 class="text-lg font-semibold text-navy-lighter">
-                  Missing Assignment
-                </h3>
-                <p class="text-gray-600">Date: December 25, 2024</p>
-                <p class="text-gray-600">I missed a mandatory assignment.</p>
-              </div>
-              <div id="status" class="h-full flex items-center">
-                <button class="bg-green-600 text-white px-4 py-2 rounded-lg">
-                  Resolved
+                <button
+                  :class="{
+                    'bg-green-600': complaint.status === 'answered',
+                    'bg-yellow-500': complaint.status === 'pending',
+                    'bg-gray-300': complaint.status === 'noted',
+                  }"
+                  class="text-white px-4 py-2 rounded-lg capitalize"
+                >
+                  {{ complaint.status }}
                 </button>
               </div>
             </div>
@@ -126,63 +73,26 @@
         </section>
       </div>
 
-      <!-- My Courses Section -->
+      <!-- Courses Section -->
       <section class="mb-12">
         <h2 class="text-2xl font-bold text-navy flex items-center">
           My Courses
-          <router-link to="/courses" class="ml-4 text-gold hover:underline">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2.5"
-              stroke="currentColor"
-              class="size-6"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </router-link>
         </h2>
         <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div
+            v-for="material in authStore.materials"
+            :key="material.id"
             class="p-4 border-l-4 bg-white border-navy-lighter/65 text-white rounded-lg shadow"
           >
-            <h3 class="font-bold text-navy-light">Math 101</h3>
-            <p class="text-navy-lighter">Instructor: Mr. John Doe</p>
-          </div>
-          <div
-            class="p-4 border-l-4 bg-white border-navy-lighter/65 text-white rounded-lg shadow"
-          >
-            <h3 class="font-bold text-navy-light">History 101</h3>
-            <p class="text-navy-lighter">Instructor: Ms. Jane Smith</p>
-          </div>
-          <div
-            class="p-4 border-l-4 bg-white border-navy-lighter/65 text-white rounded-lg shadow"
-          >
-            <h3 class="font-bold text-navy-light">History 101</h3>
-            <p class="text-navy-lighter">Instructor: Ms. Jane Smith</p>
-          </div>
-          <div
-            class="p-4 border-l-4 bg-white border-navy-lighter/65 text-white rounded-lg shadow"
-          >
-            <h3 class="font-bold text-navy-light">History 101</h3>
-            <p class="text-navy-lighter">Instructor: Ms. Jane Smith</p>
-          </div>
-          <div
-            class="p-4 border-l-4 bg-white border-navy-lighter/65 text-white rounded-lg shadow"
-          >
-            <h3 class="font-bold text-navy-light">History 101</h3>
-            <p class="text-navy-lighter">Instructor: Ms. Jane Smith</p>
-          </div>
-          <div
-            class="p-4 border-l-4 bg-white border-navy-lighter/65 text-white rounded-lg shadow"
-          >
-            <h3 class="font-bold text-navy-light">History 101</h3>
-            <p class="text-navy-lighter">Instructor: Ms. Jane Smith</p>
+            <router-link
+              :to="`/courses/${material.id}`"
+              class="block hover:underline"
+            >
+              <h3 class="font-bold text-navy-light">{{ material.name }}</h3>
+            </router-link>
+            <p class="text-navy-lighter">
+              Instructor: {{ material.instructor }}
+            </p>
           </div>
         </div>
       </section>
@@ -190,7 +100,25 @@
   </main>
 </template>
 
-<script setup></script>
+<script setup>
+import { onMounted, computed } from "vue";
+import { useAuthStore } from "@/stores/auth"; // Import Pinia store
+
+const authStore = useAuthStore();
+
+// Fetch data when the component is mounted
+onMounted(async () => {
+  await authStore.fetchAnnouncements(); // Fetch announcements
+  await authStore.fetchComplaints(); // Fetch user complaints
+  await authStore.fetchMaterials(); // Fetch courses/materials
+});
+
+// Limit announcements and complaints to 2 items each
+const limitedAnnouncements = computed(() =>
+  authStore.announcements.slice(0, 2)
+);
+const limitedComplaints = computed(() => authStore.complaints.slice(0, 2));
+</script>
 
 <style scoped>
 button {
