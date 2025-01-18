@@ -48,7 +48,10 @@
           <!-- Download Books -->
           <div class="p-4 shadow border rounded-md border-navy-lighter/10">
             <h4 class="font-bold text-navy-light mb-2">Download Books</h4>
-            <div v-if="!selectedCourse.books">No books available.</div>
+            <!-- Check if books_download_link exists -->
+            <div v-if="!selectedCourse.books_download_link">
+              No books available.
+            </div>
             <ul v-else class="space-y-2">
               <li class="text-navy-lighter">
                 -
@@ -66,17 +69,44 @@
           <!-- Assignments -->
           <div class="p-4 shadow border rounded-md border-navy-lighter/10">
             <h4 class="font-bold text-navy-light mb-2">Assignments</h4>
-            <div v-if="!selectedCourse.assignments" class="text-gray-500">
+            <div
+              v-if="
+                !selectedCourse.assignments ||
+                !selectedCourse.assignments.length
+              "
+              class="text-gray-500"
+            >
               No assignments yet.
             </div>
+            <ul v-else class="space-y-2">
+              <li
+                v-for="(assignment, index) in selectedCourse.assignments"
+                :key="index"
+                class="text-navy-lighter"
+              >
+                {{ assignment.title }} (Due: {{ assignment.due_date }})
+              </li>
+            </ul>
           </div>
 
           <!-- Tests -->
           <div class="p-4 shadow border rounded-md border-navy-lighter/10">
             <h4 class="font-bold text-navy-light mb-2">Tests</h4>
-            <div v-if="!selectedCourse.tests" class="text-gray-500">
+            <div
+              v-if="!selectedCourse.tests || !selectedCourse.tests.length"
+              class="text-gray-500"
+            >
               No tests yet.
             </div>
+            <ul v-else class="space-y-2">
+              <li
+                v-for="(test, index) in selectedCourse.tests"
+                :key="index"
+                class="text-navy-lighter"
+              >
+                {{ test.title }} (Date: {{ test.date }})
+              </li>
+            </ul>
           </div>
         </div>
       </div>
