@@ -3,7 +3,9 @@
     <!-- Page Header -->
     <header class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold text-navy">Complaints</h1>
+      <!-- Show "New Complaint" button only for students -->
       <button
+        v-if="isStudent"
         class="bg-bloody-red text-white px-6 py-2 rounded-lg hover:bg-red-600 shadow"
         @click="openNewComplaintModal"
       >
@@ -66,7 +68,20 @@
             <p class="text-gray-600">{{ complaint.content }}</p>
           </div>
           <div id="status" class="h-full flex items-center">
+            <!-- Admin can change the status -->
+            <select
+              v-if="isAdmin"
+              v-model="complaint.status"
+              @change="updateComplaintStatus(complaint)"
+              class="px-4 py-2 rounded-lg shadow text-navy-light"
+            >
+              <option value="pending">Pending</option>
+              <option value="answered">Resolved</option>
+            </select>
+
+            <!-- Students can only view the status -->
             <button
+              v-else
               class="px-4 py-2 rounded-lg text-white shadow"
               :class="{
                 'bg-green-600': complaint.status === 'answered',
@@ -83,9 +98,9 @@
       </div>
     </section>
 
-    <!-- New Complaint Modal -->
+    <!-- New Complaint Modal (only for students) -->
     <div
-      v-if="showNewComplaintModal"
+      v-if="isStudent && showNewComplaintModal"
       class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center"
     >
       <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
@@ -123,11 +138,12 @@
 
 <script>
 import axios from "axios";
+import { useAuthStore } from "@/stores/auth";
 
 export default {
   data() {
     return {
-      complaints: [], // Dynamic complaints array
+      complaints: [], // Complaints list
       filter: "All", // Default filter
       showNewComplaintModal: false, // Modal visibility
       newComplaint: {
@@ -136,6 +152,16 @@ export default {
     };
   },
   computed: {
+    // Role-based access control
+    isAdmin() {
+      const authStore = useAuthStore();
+      return authStore.role === "admin";
+    },
+    isStudent() {
+      const authStore = useAuthStore();
+      return authStore.role === "student";
+    },
+
     // Filter complaints based on status
     filteredComplaints() {
       if (this.filter === "All") return this.complaints;
@@ -155,21 +181,23 @@ export default {
     closeNewComplaintModal() {
       this.showNewComplaintModal = false;
     },
+
+    // Fetch complaints for admin or student
     async fetchComplaints() {
-      const apiUrl = import.meta.env.VITE_APP_API_URL; // Your backend API base URL
-      const token = localStorage.getItem("token"); // Get token from local storage
+      const apiUrl = import.meta.env.VITE_APP_API_URL;
+      const token = localStorage.getItem("token");
+      const route = this.isAdmin
+        ? "admin/complaints"
+        : "students/user-complaints"; // Admin or student route
 
       try {
-        const response = await axios.get(`${apiUrl}students/user-complaints`, {
+        const response = await axios.get(`${apiUrl}${route}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        // Access the 'complaints' key in the response
         const complaintsData = response.data.complaints;
-
-        // Map backend complaints to match frontend requirements
         this.complaints = complaintsData.map((complaint) => ({
           id: complaint.id,
           content: complaint.content,
@@ -180,9 +208,11 @@ export default {
         console.error("Error fetching complaints:", error.message);
       }
     },
+
+    // Submit new complaint (students only)
     async addComplaint() {
-      const apiUrl = import.meta.env.VITE_APP_API_URL; // Your backend API base URL
-      const token = localStorage.getItem("token"); // Get token from local storage
+      const apiUrl = import.meta.env.VITE_APP_API_URL;
+      const token = localStorage.getItem("token");
 
       try {
         const response = await axios.post(
@@ -199,32 +229,60 @@ export default {
         this.complaints.unshift({
           id: response.data.complaint.id,
           content: response.data.complaint.content,
-          status: "pending", // Default status is pending
+          status: "pending",
           created_at: new Date(
             response.data.complaint.created_at
           ).toLocaleDateString(),
         });
 
-        // Clear the form and close the modal
+        // Reset modal and inputs
         this.newComplaint.content = "";
         this.showNewComplaintModal = false;
-
         alert("Complaint submitted successfully!");
       } catch (error) {
         console.error("Error submitting complaint:", error.message);
         alert("Failed to submit complaint. Please try again.");
       }
     },
+
+    // Update complaint status (admin only)
+    async updateComplaintStatus(complaint) {
+      const apiUrl = import.meta.env.VITE_APP_API_URL;
+      const token = localStorage.getItem("token");
+
+      try {
+        const response = await axios.post(
+          `${apiUrl}admin/complaints/${complaint.id}/respond`,
+          { status: complaint.status },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        alert(response.data.message || "Complaint status updated!");
+      } catch (error) {
+        console.error("Error updating complaint status:", error.message);
+        alert("Failed to update complaint status.");
+      }
+    },
   },
   mounted() {
-    this.fetchComplaints();
+    this.fetchComplaints(); // Fetch complaints on component mount
   },
 };
 </script>
 
 <style scoped>
-/* Modal Styling */
-.modal-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+/* Styling for the dropdown select */
+select {
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  outline: none;
+}
+select:hover {
+  border-color: #1d4ed8;
+  transition: 0.2s ease-in-out;
 }
 </style>

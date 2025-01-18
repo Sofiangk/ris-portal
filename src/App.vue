@@ -9,6 +9,9 @@ const isDropdownOpen = ref(false);
 // Computed property for the user's name
 const username = computed(() => authStore.name);
 
+// Computed property to check if the user is an admin
+const isAdmin = computed(() => authStore.role === "admin");
+
 // Toggle dropdown menu
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
@@ -35,6 +38,7 @@ const handleLogout = () => {
       </h1>
     </div>
     <ul class="flex-grow pt-8 p-5 divide-y divide-navy-lighter/25">
+      <!-- Home -->
       <li>
         <router-link
           to="/"
@@ -43,6 +47,7 @@ const handleLogout = () => {
           Home
         </router-link>
       </li>
+      <!-- Courses -->
       <li>
         <router-link
           to="/courses"
@@ -51,7 +56,8 @@ const handleLogout = () => {
           Courses
         </router-link>
       </li>
-      <li>
+      <!-- Attendance (visible only for admins) -->
+      <li v-if="isAdmin">
         <router-link
           to="/attendance"
           class="block p-4 rounded bg-transparent hover:bg-navy-lighter/5 text-navy-light"
@@ -59,6 +65,7 @@ const handleLogout = () => {
           Attendance
         </router-link>
       </li>
+      <!-- Complaints -->
       <li>
         <router-link
           to="/complaints"
@@ -67,6 +74,7 @@ const handleLogout = () => {
           Complaints
         </router-link>
       </li>
+      <!-- Announcements -->
       <li>
         <router-link
           to="/announcements"
@@ -76,6 +84,7 @@ const handleLogout = () => {
         </router-link>
       </li>
     </ul>
+    <!-- Profile and Logout -->
     <div class="relative flex items-center mt-auto p-4">
       <button
         @click="toggleDropdown"
@@ -104,6 +113,7 @@ const handleLogout = () => {
         class="absolute bottom-16 mt-2 bg-white border border-gray-300 rounded-md shadow w-48 text-black z-10"
       >
         <ul>
+          <!-- Profile -->
           <li>
             <router-link
               to="/profile"
@@ -112,7 +122,7 @@ const handleLogout = () => {
               Profile
             </router-link>
           </li>
-
+          <!-- Logout -->
           <li>
             <button
               @click="handleLogout"
@@ -130,6 +140,7 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
+/* Active Route Styling */
 .router-link-active {
   @apply bg-navy-lighter/5 font-bold;
 }

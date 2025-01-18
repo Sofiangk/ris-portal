@@ -8,7 +8,7 @@ export const useAuthStore = defineStore("auth", {
     password: "",
     isAuthenticated: false,
     token: "",
-    role: "",
+    role: "", // User role (admin or student)
     name: "",
     announcements: [], // Store announcements
     complaints: [], // Store complaints
@@ -28,7 +28,7 @@ export const useAuthStore = defineStore("auth", {
           // Save user details
           this.token = response.data.token;
           this.isAuthenticated = true;
-          this.role = response.data.role;
+          this.role = response.data.role; // Role is set here
           this.name = response.data.user.name;
           this.email = response.data.user.email;
 
@@ -109,22 +109,24 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    // Fetch complaints
-    // Fetch complaints
-    // Fetch complaints
+    // Fetch complaints dynamically based on user role
     async fetchComplaints() {
       const apiUrl = import.meta.env.VITE_APP_API_URL;
       try {
-        const response = await axios.get(`${apiUrl}students/user-complaints`, {
+        // Determine the correct endpoint based on the user's role
+        const endpoint =
+          this.role === "admin"
+            ? "admin/complaints" // Admin endpoint
+            : "students/user-complaints"; // Student endpoint
+
+        const response = await axios.get(`${apiUrl}${endpoint}`, {
           headers: {
             Authorization: `Bearer ${this.token}`, // Include token in headers
           },
         });
 
-        // Access the nested `complaints` key in the response
-        const complaintsData = response.data.complaints;
-
-        // Map the complaints data to match frontend requirements
+        // Map complaints data to match frontend requirements
+        const complaintsData = response.data.complaints || response.data; // Handle different response structures
         this.complaints = complaintsData.map((complaint) => ({
           id: complaint.id,
           content: complaint.content,
@@ -132,22 +134,45 @@ export const useAuthStore = defineStore("auth", {
           created_at: new Date(complaint.created_at).toLocaleDateString(), // Format date
         }));
       } catch (error) {
-        console.error("Failed to fetch user complaints:", error.message);
+        console.error("Failed to fetch complaints:", error.message);
       }
     },
 
     // Fetch materials
+    // Updated fetchMaterials method
     async fetchMaterials() {
-      const apiUrl = import.meta.env.VITE_APP_API_URL;
+      const apiUrl = import.meta.env.VITE_APP_API_URL; // Base API URL
+      const token = localStorage.getItem("token"); // Get the token from localStorage
+      const role = localStorage.getItem("role"); // Get the role from localStorage
+
+      // Determine the correct route based on role
+      const route =
+        role === "admin" ? "admin/getAllCourses" : "students/materials";
+
       try {
-        const response = await axios.get(`${apiUrl}students/materials`, {
+        const response = await axios.get(`${apiUrl}${route}`, {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${token}`, // Include the token in headers
           },
         });
-        this.materials = response.data;
+
+        // Map the materials for both student and admin
+        this.materials = response.data.map((material) => ({
+          id: material.id,
+          name: material.name,
+          code: material.code,
+          description: material.description || "No description available.",
+          instructor: material.instructor || "Unknown",
+          credits: material.credits,
+          books_download_link: material.books_download_link,
+        }));
+
+        console.log("Materials fetched successfully:", this.materials); // Debugging
       } catch (error) {
-        console.error("Failed to fetch materials:", error.message);
+        console.error("Error fetching materials:", error.message);
+        alert(
+          "Failed to fetch materials. Please check your role and try again."
+        );
       }
     },
   },

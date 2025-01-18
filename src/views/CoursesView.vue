@@ -2,7 +2,9 @@
   <div class="ml-64 grid grid-cols-1 gap-4 p-12 bg-slate-100 h-screen">
     <!-- Course List -->
     <section class="space-y-4 overflow-y-scroll h-80">
-      <h2 class="text-2xl font-bold text-navy-light">My Courses</h2>
+      <h2 class="text-2xl font-bold text-navy-light">
+        {{ isAdmin ? "All Courses" : "My Courses" }}
+      </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
           v-for="course in courses"
@@ -89,6 +91,7 @@
 
 <script>
 import axios from "axios";
+import { useAuthStore } from "@/stores/auth"; // Import Pinia store
 
 export default {
   data() {
@@ -97,14 +100,26 @@ export default {
       selectedCourse: null, // To track the selected course
     };
   },
+  computed: {
+    // Check if the user is an admin or a student
+    isAdmin() {
+      const authStore = useAuthStore();
+      return authStore.role === "admin";
+    },
+  },
   methods: {
-    // Fetch courses from the backend
+    // Fetch courses dynamically based on user role
     async fetchCourses() {
       const apiUrl = import.meta.env.VITE_APP_API_URL; // Base URL from environment variables
       const token = localStorage.getItem("token"); // Retrieve token from local storage
+      const role = localStorage.getItem("role"); // Retrieve role from local storage
+
+      // Determine the route to call based on the role
+      const route =
+        role === "admin" ? "admin/getAllCourses" : "students/materials";
 
       try {
-        const response = await axios.get(`${apiUrl}students/materials`, {
+        const response = await axios.get(`${apiUrl}${route}`, {
           headers: {
             Authorization: `Bearer ${token}`, // Include the token in the header
           },
@@ -115,19 +130,23 @@ export default {
           id: course.id,
           name: course.name,
           code: course.code,
-          instructor: course.instructor,
-          credits: course.credits,
-          books_download_link: course.books_download_link,
-          assignments: course.assignments,
-          tests: course.tests,
+          instructor: course.instructor || "Unknown",
+          credits: course.credits || "N/A",
+          books_download_link: course.books_download_link || null,
+          assignments: course.assignments || [],
+          tests: course.tests || [],
         }));
+
+        console.log("Courses fetched successfully:", this.courses);
       } catch (error) {
         console.error(
           "Failed to fetch courses:",
           error.response || error.message
         );
+        alert("Failed to fetch courses. Please try again.");
       }
     },
+
     // Handle course selection
     selectCourse(course) {
       this.selectedCourse = course;
