@@ -197,13 +197,18 @@ export default {
           },
         });
 
-        const complaintsData = response.data.complaints;
+        // Handle both student and admin complaint structures
+        const complaintsData = response.data.complaints || response.data; // For admin, data is under "complaints"
+
+        // Map complaints
         this.complaints = complaintsData.map((complaint) => ({
           id: complaint.id,
           content: complaint.content,
           status: complaint.status.toLowerCase(),
           created_at: new Date(complaint.created_at).toLocaleDateString(),
         }));
+
+        console.log("Fetched complaints:", this.complaints); // Debugging
       } catch (error) {
         console.error("Error fetching complaints:", error.message);
       }

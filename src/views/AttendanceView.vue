@@ -95,7 +95,7 @@ export default {
       const token = localStorage.getItem("token"); // Get the token from local storage
 
       try {
-        const response = await axios.get(`${apiUrl}admin/materials`, {
+        const response = await axios.get(`${apiUrl}admin/getAllCourses`, {
           headers: {
             Authorization: `Bearer ${token}`, // Include token in headers
           },

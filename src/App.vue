@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from "@/stores/auth"; // Import Pinia store
 
 const authStore = useAuthStore(); // Access the auth store
@@ -21,6 +21,11 @@ const toggleDropdown = () => {
 const handleLogout = () => {
   authStore.logout(); // Call the logout action in the store
 };
+
+// Automatically initialize user session on page refresh
+onMounted(() => {
+  authStore.initializeAuth(); // Ensure session persistence
+});
 </script>
 
 <template>

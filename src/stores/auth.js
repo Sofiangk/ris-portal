@@ -14,7 +14,27 @@ export const useAuthStore = defineStore("auth", {
     complaints: [], // Store complaints
     materials: [], // Store materials
   }),
+
   actions: {
+    // NEW: Initialize auth state from localStorage
+    initializeAuth() {
+      const token = localStorage.getItem("token");
+      const name = localStorage.getItem("name");
+      const email = localStorage.getItem("email");
+      const role = localStorage.getItem("role");
+      const isAuthenticated = localStorage.getItem("isAuthenticated");
+
+      if (token && name && email && role && isAuthenticated === "true") {
+        this.token = token;
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.isAuthenticated = true; // Restore authenticated state
+      } else {
+        this.clearSession(); // Clear session if any data is missing
+      }
+    },
+
     // Login action
     async login() {
       const apiUrl = import.meta.env.VITE_APP_API_URL;
@@ -138,7 +158,6 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    // Fetch materials
     // Updated fetchMaterials method
     async fetchMaterials() {
       const apiUrl = import.meta.env.VITE_APP_API_URL; // Base API URL
