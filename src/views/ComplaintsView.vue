@@ -77,6 +77,7 @@
             >
               <option value="pending">Pending</option>
               <option value="answered">Resolved</option>
+              <option value="noted">Noted</option>
             </select>
 
             <!-- Students can only view the status -->
@@ -86,6 +87,7 @@
               :class="{
                 'bg-green-600': complaint.status === 'answered',
                 'bg-red-500': complaint.status === 'pending',
+                'bg-gray-300': complaint.status === 'noted',
               }"
             >
               {{ complaint.status }}

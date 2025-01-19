@@ -47,7 +47,7 @@
               :class="{
                 'border-green-600': complaint.status === 'answered',
                 'border-yellow-500': complaint.status === 'pending',
-                'border-gray-300': complaint.status === 'noted',
+                'text-black border-gray-300': complaint.status === 'noted',
               }"
             >
               <div>
@@ -61,7 +61,7 @@
                   :class="{
                     'bg-green-600': complaint.status === 'answered',
                     'bg-yellow-500': complaint.status === 'pending',
-                    'bg-gray-300': complaint.status === 'noted',
+                    'text-black bg-gray-300': complaint.status === 'noted',
                   }"
                   class="text-white px-4 py-2 rounded-lg capitalize"
                 >
@@ -84,10 +84,7 @@
             :key="material.id"
             class="p-4 border-l-4 bg-white border-navy-lighter/65 text-white rounded-lg shadow"
           >
-            <router-link
-              :to="`/courses/${material.id}`"
-              class="block hover:underline"
-            >
+            <router-link :to="`/courses`" class="block hover:underline">
               <h3 class="font-bold text-navy-light">{{ material.name }}</h3>
             </router-link>
             <p class="text-navy-lighter">
